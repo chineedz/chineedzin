@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>ChineeDZ Premium Store</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+
+body{
+font-family:Arial;
+background:#fafafa;
+}
+
+.product{
+background:white;
+border-radius:12px;
+padding:10px;
+border:1px solid #eee;
+transition:.3s;
+}
+
+.product:hover{
+transform:translateY(-5px);
+box-shadow:0 8px 20px rgba(0,0,0,0.08);
+}
+
+.btn{
+background:black;
+color:white;
+padding:12px;
+border-radius:8px;
+font-weight:bold;
+width:100%;
+}
+
+</style>
+
+</head>
+
+<body class="max-w-lg mx-auto p-4">
+
+<h1 class="text-center text-3xl font-black mb-6">ChineeDZ</h1>
+
+<input id="search" placeholder="Search product..." class="w-full p-3 border rounded-lg mb-6">
+
+<div id="grid" class="grid grid-cols-2 gap-4"></div>
+
+<hr class="my-8">
+
+<h2 class="font-bold mb-4">🛒 Shopping Cart</h2>
+
+<div id="cart"></div>
+
+<div class="flex justify-between mt-4 font-bold">
+<span>Total:</span>
+<span id="total">0 DA</span>
+</div>
+
+<hr class="my-8">
+
+<h2 class="font-bold mb-4">📦 Order Information</h2>
+
+<input id="name" placeholder="Full Name" class="border p-3 w-full rounded mb-3">
+
+<input id="phone" placeholder="Phone Number" class="border p-3 w-full rounded mb-3">
+
+<select id="delivery" class="border p-3 w-full rounded mb-3">
+
+<option value="600">Office Delivery (600 DA)</option>
+<option value="800">Home Delivery (800 DA)</option>
+
+</select>
+
+<button onclick="order()" class="btn">Confirm Order</button>
+
+<script>
+
+const products=[
+
+{id:1,name:"Ensemble ALO",price:5500,img:"https://i.postimg.cc/KYryjMWw/IMG_20260210_225601_843.jpg"},
+{id:2,name:"Ensemble Polo",price:5900,img:"https://i.postimg.cc/rwBs656R/IMG_20260210_222331_180.jpg"},
+{id:3,name:"Baggy Pants",price:2900,img:"https://i.postimg.cc/qMW56KDm/IMG_20260215_200828_193.jpg"},
+{id:4,name:"Veste Grey",price:4500,img:"https://i.postimg.cc/kXLpRSYQ/IMG_20260215_200825_775.jpg"},
+{id:5,name:"Oversized T-shirt",price:1800,img:"https://i.postimg.cc/kGTGLZCL/IMG_20260210_222158_000.jpg"}
+
+];
+
+let cart=[];
+
+function render(list=products){
+
+const grid=document.getElementById("grid");
+
+grid.innerHTML="";
+
+list.forEach(p=>{
+
+grid.innerHTML+=`
+
+<div class="product">
+
+<img src="${p.img}" class="rounded mb-2">
+
+<h3 class="text-sm font-bold">${p.name}</h3>
+
+<p class="font-black mb-2">${p.price} DA</p>
+
+<button class="btn text-sm" onclick="add(${p.id})">
+
+Add to Cart
+
+</button>
+
+</div>
+
+`;
+
+});
+
+}
+
+function add(id){
+
+const item=products.find(p=>p.id===id);
+
+cart.push(item);
+
+updateCart();
+
+}
+
+function updateCart(){
+
+const div=document.getElementById("cart");
+
+div.innerHTML="";
+
+let total=0;
+
+cart.forEach((p,i)=>{
+
+total+=p.price;
+
+div.innerHTML+=`
+
+<div class="flex justify-between border p-2 rounded mb-2">
+
+<span class="text-sm">${p.name}</span>
+
+<div class="flex gap-3">
+
+<span>${p.price}</span>
+
+<button onclick="remove(${i})">
+
+<i class="fa fa-trash text-red-500"></i>
+
+</button>
+
+</div>
+
+</div>
+
+`;
+
+});
+
+document.getElementById("total").innerText=total+" DA";
+
+}
+
+function remove(i){
+
+cart.splice(i,1);
+
+updateCart();
+
+}
+
+document.getElementById("search").addEventListener("input",function(){
+
+let v=this.value.toLowerCase();
+
+let filtered=products.filter(p=>p.name.toLowerCase().includes(v));
+
+render(filtered);
+
+});
+
+async function order(){
+
+if(cart.length==0){
+
+alert("Cart Empty");
+
+return;
+
+}
+
+const name=document.getElementById("name").value;
+
+const phone=document.getElementById("phone").value;
+
+const delivery=document.getElementById("delivery").value;
+
+let items="";
+
+let total=0;
+
+cart.forEach(p=>{
+
+items+=`• ${p.name} - ${p.price} DA\n`;
+
+total+=p.price;
+
+});
+
+total+=Number(delivery);
+
+const text=
+
+`📦 NEW ORDER
+
+Products:
+${items}
+
+Total: ${total} DA
+
+Name: ${name}
+Phone: ${phone}
+Delivery: ${delivery} DA`;
+
+await fetch("https://api.telegram.org/botYOUR_BOT_TOKEN/sendMessage",{
+
+method:"POST",
+
+headers:{"Content-Type":"application/json"},
+
+body:JSON.stringify({
+
+chat_id:"YOUR_CHAT_ID",
+
+text:text
+
+})
+
+});
+
+alert("Order Sent");
+
+cart=[];
+
+updateCart();
+
+}
+
+render();
+
+</script>
+
+</body>
+</html>
